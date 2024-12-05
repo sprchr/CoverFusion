@@ -61,7 +61,7 @@ const CoverLetter = () => {
             //     }
             //   }
             const response = await axios.post(
-                'https://wikisource-backend.vercel.app/api/generateCoverLetter',
+                'https://wiki-source-backend.vercel.app/api/generateCoverLetter',
                 formData,
                 {
                   headers: {
