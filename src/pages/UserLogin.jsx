@@ -10,7 +10,7 @@ const UserLogin = () => {
   const loginWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      navigate('/')
+      navigate('/search')
       return result.user;
     } catch (error) {
       console.error("Error during login:", error);
