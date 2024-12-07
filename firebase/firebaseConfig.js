@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signOut } from "firebase/auth";
-
+import { toast } from "react-toastify";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTHDOMIAN,
@@ -21,6 +21,7 @@ export const provider = new GoogleAuthProvider();
 export const logout = async () => {
   try {
     await signOut(auth);
+    toast.success('Logout successful!', { position: "top-right", autoClose: 2000 }); 
   } catch (error) {
     console.error("Error during logout:", error);
   }

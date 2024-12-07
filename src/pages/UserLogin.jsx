@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { auth, provider } from '../../firebase/firebaseConfig'
-
+import {  toast } from 'react-toastify';
 import {  useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 const UserLogin = () => {
@@ -9,8 +9,9 @@ const UserLogin = () => {
   const [password, setPassword] = useState("");
   const loginWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      navigate('/search')
+      const result = await signInWithPopup(auth, provider)
+      toast.success('Login successful!', { position: "top-right", autoClose: 2000 }); 
+      navigate('/')
       return result.user;
     } catch (error) {
       console.error("Error during login:", error);
@@ -23,7 +24,7 @@ const UserLogin = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful!");
+      // console.log("Login successful!");
       navigate('/')
       setEmail("");
       setPassword("");

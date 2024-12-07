@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log(isAuthenticated); // Logs the value when isAuthenticated changes
+    // console.log(isAuthenticated); // Logs the value when isAuthenticated changes
   }, [isAuthenticated]);
   return (
     <AuthContext.Provider value={{ isAuthenticated}}>

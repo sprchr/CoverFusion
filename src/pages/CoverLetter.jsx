@@ -1,41 +1,44 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import jsPDF from "jspdf";
-
+import saveAs from 'file-saver';
 const CoverLetter = () => {
     const [jobDescription, setJobDescription] = useState('');
     const [resume, setResume] = useState(null);
     const [error, setError] = useState('');
     const [errorResume, setErrorResume] = useState('');
     const [coverLetter, setCoverLetter] = useState('');
-    const [letterError,setLetterError] = useState('')
-    
-    const generatePDF = async() => {
-        const doc = new jsPDF();
-        doc.setFontSize(12);
+    const [loading ,setLoading] = useState(false)
+       
+const generatePDF = async () => {
+    try {
+        const response = await axios.post(
+          'http://localhost:3000/api/generatepdf',
+          { coverLetter }, // Pass the result or any necessary data
+          {
+            responseType: 'arraybuffer', // Ensure the response is in binary format
+          }
+        );
+         
+        // const uint8Array = new Uint8Array(response.data) // Convert response to Uint8Array
+        const uint8Array = new Uint8Array(response.data);
+        // console.log(uint8Array)
+        const blob = new Blob([uint8Array], { type: 'application/pdf' });
+         
+        // console.log(uint8Array)
+        saveAs(blob, 'coverletter.pdf'); // Trigger file download
         
-        const data = coverLetter
-          .replace(/<br\s*\/?>/gi, '\n') // Replace <br> with \n
-          .replace(/<\/?p>/gi, '');      // Remove <p> tags
-        
-        const marginLeft = 15;
-        const marginRight = 15;
-        const pageWidth = doc.internal.pageSize.width;
-        const maxWidth = pageWidth - marginLeft - marginRight; // Calculate max width
-        
-        // Split text into lines based on maxWidth
-        const lines = doc.splitTextToSize(data, maxWidth);
-        
-        // Add text to PDF
-        doc.text(lines, marginLeft, 15); // Automatically handles line breaks
-        doc.save("cover_letter.pdf");
-    }
+        console.log('PDF generated and downloaded.');
+      } catch (error) {
+        console.error('Error generating or downloading PDF:', error);
+      }
+};
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setErrorResume('');
-        
-
+        setLoading(true)
+        setCoverLetter('')
         if (!jobDescription && !resume) {
             setError('Please fill in the job description');
            
@@ -49,19 +52,9 @@ const CoverLetter = () => {
             const formData = new FormData();
             formData.append('jobDescription', jobDescription);
             formData.append('resume',resume)
-            // console.log('Inspecting FormData:');
-            // for (const [key, value] of formData.entries()) {
-            //     if (value instanceof File) {
-            //       console.log(`${key}:`);
-            //       console.log('  Name:', value.name);
-            //       console.log('  Type:', value.type);
-            //       console.log('  Size:', value.size, 'bytes');
-            //     } else {
-            //       console.log(`${key}: ${value}`);
-            //     }
-            //   }
+          
             const response = await axios.post(
-                'https://wiki-source-backend.vercel.app/api/generateCoverLetter',
+                'http://localhost:3000/api/generateCoverLetter',
                 formData,
                 {
                   headers: {
@@ -73,18 +66,21 @@ const CoverLetter = () => {
         
           setCoverLetter(response.data)
          console.log(response.data)
-            
+            setLoading(false)
         } catch (error) {
+            setLoading(false)
+            setCoverLetter('')
             console.error('Request failed:', error);
-            setLetterError('An error occurred. Please check your input and try again.');
+            
         }
     };
+    // console.log(coverLetter)
 
     return (
-        <div className="flex bg-gray-200 h-screen justify-center ">
+        <div className="flex  h-screen justify-center ">
             <div className="border-2 mt-10 w-1/2 border-gray-800 h-fit bg-white">
                 <p className="text-[50px] text-center font-medium">Cover Letter Generator</p>
-                <form encType='mutlipart/form-data' onSubmit={handleSubmit} className="mx-5  mb-10">
+                <form encType='mutlipart/form-data' onSubmit={handleSubmit} className="mx-5  mb-6">
                     <div className="mb-4">
                         <label htmlFor="jobdescription" className="block text-sm font-medium mb-1">
                             Job Description
@@ -122,23 +118,12 @@ const CoverLetter = () => {
                     )}
                     <button className="w-full mx-auto bg-blue-600 text-white p-2 rounded-md">Generate & Show Cover Letter</button>
                 </form>
-                       
-                {coverLetter ? (
-                    <div className="p-5   border-black mt-6 mx-auto bg-gray-100 rounded-lg w-full">
-                   <div className="flex gap-10 items-center mb-10">
-                   <h3 className="text-xl font-bold ">Generated Cover Letter</h3>
-                    <button className='p-2 border-2 bg-blue-600  w-44 font-medium rounded-md text-center text-[16px]' onClick={generatePDF}>Download PDF</button>
-                  
-                   </div>
-                    
-                   <p  id="cover-letter" className="text-[16px]   bg-[#fff] m-auto   max-w-[190mm] p-5" dangerouslySetInnerHTML={{ __html: coverLetter }}>
-                   </p>
+                {loading &&  <p className='ml-5 my-5 font-medium text-[20px]'>Cover Letter is being generated...</p>  }
                    
-               </div>
-                ) :  <div className="text-red-500 mx-auto flex justify-center text-sm mb-4">
-                <p>{letterError}</p>
-            </div>  }
-            
+             {/* resume template */}
+             {coverLetter && <div className='m-2 mx-5' dangerouslySetInnerHTML={{ __html: coverLetter }} />}
+             {/* template end */}
+               {coverLetter &&  <button className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md" onClick={()=>generatePDF()}>Download Pdf</button>}     
             </div>
         </div>
     );

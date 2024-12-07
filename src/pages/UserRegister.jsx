@@ -2,6 +2,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react'
 import { auth } from '../../firebase/firebaseConfig';
 import {  useNavigate } from "react-router-dom";
+import {  toast } from 'react-toastify';
 const UserRegister = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -16,6 +17,7 @@ const UserRegister = () => {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
         setSuccess("Registration successful! You can now log in.");
+        toast.success('Registration successful!', { position: "top-right", autoClose: 2000 }); 
         setEmail("");
         setPassword("");
       } catch (err) {
