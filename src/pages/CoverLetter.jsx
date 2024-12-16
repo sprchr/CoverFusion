@@ -12,7 +12,7 @@ const CoverLetter = () => {
 const generatePDF = async () => {
     try {
         const response = await axios.post(
-          'http://localhost:3000/api/generatepdf',
+          `${import.meta.env.VITE_DEPLOY_BACKEND}/generatepdf`,
           { coverLetter }, // Pass the result or any necessary data
           {
             responseType: 'arraybuffer', // Ensure the response is in binary format
@@ -54,7 +54,7 @@ const generatePDF = async () => {
             formData.append('resume',resume)
           
             const response = await axios.post(
-                'http://localhost:3000/api/generateCoverLetter',
+                `${import.meta.env.VITE_DEPLOY_BACKEND}/generateCoverLetter`,
                 formData,
                 {
                   headers: {
