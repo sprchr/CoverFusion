@@ -11,15 +11,17 @@ const ResumeBuilder = () => {
     const [file,setFile] = useState(null)
     const [error,setError] = useState('')
     const [loading,setLoading] = useState(false)
-    const  [editForm,setEditForm] = useState({})
+    const  [pdf,setPdf] = useState(false)
+    const [editForm,setEditForm] = useState({})
     const handleResumeData = async (data) => {
       setEditForm(data); // Update the edit form state if necessary
       setLoading(true);  // Show loading feedback
-    
+      setResumeForm(false)
+      setResume({})
       try {
         // Send data to the first API (editResume)
         const response = await axios.post(
-          `${import.meta.env.VITE_DEPLOY_BACKEND}/editResume`,
+          `${import.meta.env.VITE_API_CALL}/editResume`,
           data, // Pass the edited form data
           {
             headers: {
@@ -28,13 +30,13 @@ const ResumeBuilder = () => {
           }
         );
     
-        console.log("Response from editResume:", response.data);
+        // console.log("Response from editResume:", response.data);
         setResume(response.data); // Update the resume state
         const auth = getAuth()
         const userId = auth.currentUser?.uid
         // Send the response data to the submitForm API
         const firebaseResponse = await axios.post(
-          `${import.meta.env.VITE_DEPLOY_BACKEND}/submitForm`,
+          `${import.meta.env.VITE_API_CALL}/submitForm`,
           { ...response.data, userId }, // Include the userId with the data
           {
             headers: {
@@ -58,7 +60,7 @@ const ResumeBuilder = () => {
 const generatePDF = async () => {
     try {
         const response = await axios.post(
-          `${import.meta.env.VITE_DEPLOY_BACKEND}/generatepdf`,
+          `${import.meta.env.VITE_API_CALL}/generatepdf`,
           
           { resumeHtml }, // Pass the result or any necessary data
           {
@@ -88,6 +90,7 @@ const generatePDF = async () => {
 const handleSubmit = async (e) => {
   e.preventDefault()
   setLoading(true)
+  setResume({})
   const formData = new FormData();
   formData.append('resume', file); 
   // console.log(formData)
@@ -102,14 +105,14 @@ const handleSubmit = async (e) => {
               },           
               }
             );
-            console.log(response.data)
+            // console.log(response.data)
       
             setResume(response.data)
             const auth = getAuth()
         const userId = auth.currentUser?.uid
         // Send the response data to the submitForm API
         const firebaseResponse = await axios.post(
-          `${import.meta.env.VITE_DEPLOY_BACKEND}/submitForm`,
+          `${import.meta.env.VITE_API_CALL}/submitForm`,
           
           { ...response.data, userId }, // Include the userId with the data
           {
@@ -123,6 +126,7 @@ const handleSubmit = async (e) => {
         // console.log("Response from submitForm:", firebaseResponse.data);
     
         setLoading(false); // Stop loading feedback
+        setPdf(true)
       } catch (error) {
         setLoading(false)
           console.error('Request failed:', error);
@@ -167,23 +171,21 @@ const handleSubmit = async (e) => {
   }, []);
     const [resume, setResume] = useState({
       header: {
-        fullName: "",
-        title: "",
+        name: "",
+        title:"",
         email: "",
         phone: "",
         linkedin: "",
         github: "",
-        location: "",
+        address: "",
       },
       summary: "",
       skills: [],
       education: [
       ],
       experience: [
-      
       ],
       projects: [
-       
       ],
       certifications: [],
       achievements: [],
@@ -285,7 +287,7 @@ const handleSubmit = async (e) => {
       <div class="resume-container">
         ${resume.header ? `
           <header class="header">
-            <h1>${resume.header.fullName}</h1>
+            <h1>${resume.header.name}</h1>
             <p>${resume.header.title}</p>
             <div class="contact-info">
                ${resume.header.email ? `<p>Email: ${resume.header.email}</p>`:'' }  
@@ -294,7 +296,7 @@ const handleSubmit = async (e) => {
                 ${resume.header.linkedin ? ` |  <a href="${resume.header.linkedin}" class="text-blue-500 underline">LinkedIn</a>` : ''}
                 ${resume.header.github ? ` | <a href="${resume.header.github}" class="text-blue-500 underline">GitHub</a>` : ''}
               </p>
-             ${resume.header.email  ? ` | <p>${resume.header.location}</p>` : '' }
+             ${resume.header.address  ? ` | <p>${resume.header.address}</p>` : '' }
             </div>
           </header>
         ` : ''}
@@ -315,7 +317,7 @@ const handleSubmit = async (e) => {
           </section>
         ` : ''}
     
-        ${resume.education && resume.education.length > 0 ? `
+        ${resume.education && resume.education.length > 1 ? `
           <section class="section">
             <h2>Education</h2>
             ${resume.education.map(edu => `
@@ -329,7 +331,7 @@ const handleSubmit = async (e) => {
           </section>
         ` : ''}
     
-        ${resume.experience && resume.experience.length > 0 ? `
+        ${resume.experience && resume.experience.length > 1 ? `
           <section class="section">
             <h2>Work Experience</h2>
             ${resume.experience.map(job => `
@@ -344,7 +346,7 @@ const handleSubmit = async (e) => {
           </section>
         ` : ''}
     
-        ${resume.projects && resume.projects.length > 0 ? `
+        ${resume.projects && resume.projects.length > 1 ? `
           <section class="section">
             <h2>Projects</h2>
             ${resume.projects.map(project => `
@@ -434,14 +436,17 @@ const handleSubmit = async (e) => {
              {/* resume template */}
              {resume && (
       resumeForm ?  (<ResumeForm  onSubmitResume={handleResumeData}/>) :
-    (<div className="m-2 mx-5" dangerouslySetInnerHTML={{ __html: resumeHtml }} />)
-      
-  
-)}
+    (<>
+    <div className="m-2 mx-5" dangerouslySetInnerHTML={{ __html: resumeHtml }} />
+      </>
+    )
+    
+    
+  )}
 
              {/* template end */}
-               { resume ? <button className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md" onClick={()=>generatePDF()}>Download Pdf</button>:''}     
-            
+ {pdf && (<button className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md" onClick={()=>generatePDF()}>Download Pdf</button>)}
+             
             </div>
         </div>
     );

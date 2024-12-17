@@ -40,13 +40,13 @@ const ResumeForm = ({ onSubmitResume }) => {
   }, []);
   const [resume, setResume] = useState({
     header: {
-      fullName: "",
+      name: "",
       title: "",
       email: "",
       phone: "",
       linkedin: "",
       github: "",
-      location: "",
+      address: "",
     },
     summary:
       "",
@@ -152,11 +152,11 @@ const ResumeForm = ({ onSubmitResume }) => {
               type="text"
               placeholder="Your Name"
               className="px-2 text-center focus:outline-blue-500  "
-              value={resume.header.fullName}
+              value={resume.header.name}
               onChange={(e) =>
-                handleChange("fullName", e.target.value, "header")
+                handleChange("name", e.target.value, "header")
               }
-              style={{ width: resume.header.fullName ? `${resume.header.fullName.length + 1}ch` : 'auto' }}
+              style={{ width: resume.header.name ? `${resume.header.name.length + 2}ch` : 'auto' }}
 
             />
           </div>
@@ -167,12 +167,12 @@ const ResumeForm = ({ onSubmitResume }) => {
               className=" c text-center focus:outline-blue-500 mb-2"
               value={resume.header.title}
               onChange={(e) => handleChange("title", e.target.value, "header")}
-              style={{ width: resume.header.title ? `${resume.header.fullName.title + 1}ch` : 'auto' }}
+              style={{ width: resume.header.title ? `${resume.header.title.length + 1}ch` : 'auto' }}
             />
             <span className="absolute opacity-0">{resume.header.title}</span>
           </div>
           <div className="flex justify-center flex-wrap text-18 mb-2">
-            {["email", "phone", "linkedin", "github", "location"].map(
+            {["email", "phone", "linkedin", "github", "address"].map(
               (field) => (
                 <div key={field} className="relative mb-2">
                   <input
