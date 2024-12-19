@@ -17,7 +17,7 @@ const App = () => {
   return (
     <div
         style={{
-    backgroundImage: "url('https://i.ibb.co/vByL0k0/profile.jpg')",
+    backgroundImage: "url('https://i.ibb.co/vLDFvFN/bgone.webp')",
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",
