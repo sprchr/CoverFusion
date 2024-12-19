@@ -16,7 +16,7 @@ const App = () => {
   const navigate = useNavigate();
   return (
     <div>
-      <p className=" hover:cursor-pointer flex justify-center mt-28 font-bold text-[56px] text-blue-500 mb-10">CoverFusion</p>
+      <p className=" hover:cursor-pointer flex justify-center mt-28 font-bold text-[56px] text-blue-500 mb-10">Cover Fusion</p>
     <div className='flex justify-center items-center '>
       <div className="flex flex-col justify-center  items-center gap-16 border-2 border-gray-200 shadow-2xl shadow-blue-950 p-32">
        <div className="flex text-[20px] md:text-[30px]  gap-16">
