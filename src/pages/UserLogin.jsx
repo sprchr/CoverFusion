@@ -35,6 +35,7 @@ const UserLogin = () => {
 
   return (
     <div className='flex gap-6 flex-col justify-center  h-screen items-center '>
+      <p  onClick={()=>{navigate('/')}} className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]">CoverFusion</p>
          <button onClick={()=>loginWithGoogle()} className="border-2 p-2 w-60 rounded-md font-medium text-black">Continue with Google</button>
          <h4>OR</h4>
          <form
