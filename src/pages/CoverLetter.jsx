@@ -82,7 +82,7 @@ const CoverLetter = () => {
         }}
         className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]"
       >
-        CoverFusion
+        Cover Fusion
       </p>
       <div className="flex  h-screen justify-center ">
         <div className="border-2 mt-10 w-1/2 border-gray-800 h-fit bg-white">
