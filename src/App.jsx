@@ -19,8 +19,7 @@ const App = () => {
         style={{
     backgroundImage: "url('https://i.ibb.co/BZ8xCc0/bgthree.jpg')",
     backgroundSize: "cover",
-    backgroundPosition: "center",
-    height: "100vh",
+    backgroundPosition: "center"
   }}>
       <p className=" hover:cursor-pointer flex justify-center mt-28 font-bold text-[56px] text-blue-500 mb-10">Cover Fusion</p>
     <div className='flex justify-center items-center '>
