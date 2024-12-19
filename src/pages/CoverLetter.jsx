@@ -85,7 +85,7 @@ const CoverLetter = () => {
         onClick={() => {
           navigate("/");
         }}
-        className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]"
+         className=" hover:cursor-pointer flex justify-center mt-28 font-bold text-[56px] text-blue-500 mb-10"
       >
         Cover Fusion
       </p>
