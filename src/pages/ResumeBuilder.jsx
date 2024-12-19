@@ -476,7 +476,7 @@ const ResumeBuilder = () => {
 
   return (
      <div style={{
-    backgroundImage: "url('https://i.ibb.co/BZ8xCc0/bgthree.jpg')",
+    backgroundImage: "url('https://i.ibb.co/jHv6pxq/bgthree.png')",
     backgroundSize: "cover",
     backgroundPosition: "center"
   }}>
