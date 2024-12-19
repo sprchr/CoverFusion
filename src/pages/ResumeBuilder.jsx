@@ -476,7 +476,7 @@ const ResumeBuilder = () => {
 
   return (
     <div>
-    <p  onClick={()=>{navigate('/')}} className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]">CoverFusion</p>
+    <p  onClick={()=>{navigate('/')}} className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]">Cover Fusion</p>
     <div className="flex justify-center w-screen">
       <div className="border-2 mt-5 w-[800px] border-gray-800 bg-white">
         <p className="text-[50px] text-center font-medium">Resume Builder</p>
