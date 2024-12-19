@@ -1,5 +1,5 @@
 vimport React, { useState } from 'react';
-import { auth, provider } from '../../firebase/firebaseConfig';
+import { auth, provider } from '../../firebase/firebaseConfig'
 import {  toast } from 'react-toastify';
 import {  useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
