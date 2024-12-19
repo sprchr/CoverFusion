@@ -75,7 +75,12 @@ const CoverLetter = () => {
   // console.log(coverLetter)
 
   return (
-    <div>
+ <div
+        style={{
+    backgroundImage: "url('https://i.ibb.co/BZ8xCc0/bgthree.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center"
+  }}>
       <p
         onClick={() => {
           navigate("/");
