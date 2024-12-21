@@ -25,7 +25,7 @@ const UserRegister = () => {
       }
     };
     return (
-      <div className='flex gap-6 flex-col justify-center  h-screen items-center '>
+      <div className="flex gap-6 flex-col justify-center   h-screen items-center bg-[url('/img1.avif')] bg-cover bg-bottom ">
 
           <p  onClick={()=>{navigate('/')}} className=" hover:cursor-pointer mt-5 flex justify-center font-bold text-blue-500 text-[32px]">Cover Fusion</p>
 

@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import saveAs from "file-saver";
 import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
 const CoverLetter = () => {
     const navigate = useNavigate();
   const [jobDescription, setJobDescription] = useState("");
@@ -10,8 +13,27 @@ const CoverLetter = () => {
   const [errorResume, setErrorResume] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [loading, setLoading] = useState(false);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
+  const handleLogout = () => {
+    const auth = getAuth();
+    auth
+      .signOut()
+      .then(() => {
+        navigate("/"); // Redirect to the login page after logout
+      })
+      .catch((error) => {
+        console.error("Logout failed:", error); // Log any errors during logout
+      });
+  };
   const generatePDF = async () => {
+    
+    if (!user) {
+      // Navigate to the login page if the user is not logged in
+      navigate("/login");
+      return;
+    }
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_CALL}/generatepdf`,
@@ -64,7 +86,20 @@ const CoverLetter = () => {
       );
 
       setCoverLetter(response.data);
-      console.log(response.data);
+      const html = response.data
+            const auth = getAuth();
+            const userId = auth.currentUser?.uid;
+            const db = getFirestore();
+            const resumeRef = doc(db, "coverLetter", userId); // Store the resume draft in the "resumeDraft" collection with userId as document ID
+      
+            // Add the userId and timestamp (optional)
+            const dataToStore = {
+              html,
+              updatedAt: new Date(),
+            };
+      
+            // Store the resume draft in Firestore (will merge with existing document if exists)
+            await setDoc(resumeRef, dataToStore, { merge: true });
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -73,23 +108,54 @@ const CoverLetter = () => {
     }
   };
   // console.log(coverLetter)
-
+ const fetchResumeData = async (userId) => {
+      // console.log(userId)
+      try {
+        // Reference to the user's resume document
+        const userDocRef = doc(db, "coverLetter", userId);
+  
+        // Fetch the document snapshot
+        const userDocSnap = await getDoc(userDocRef);
+  
+        if (userDocSnap.exists()) {
+          // Extract the data from the document
+          const coverletter = userDocSnap.data();
+          
+          // console.log("Fetched Resume Data:", coverLetter);
+  
+          // Update the resume state
+          setCoverLetter(coverletter.html); // Assuming `setResume` is accessible in this scope
+         
+        } else {
+          console.log("No such document! Initializing with default values.");
+          // Document doesn't exist; you can handle this by keeping the default state
+        }
+      } catch (error) {
+        console.error("Error fetching resume data:", error);
+      }
+    };
+    useEffect(() => {
+        const auth = getAuth();
+        const userId = auth.currentUser?.uid;
+    
+        if (userId) {
+          fetchResumeData(userId);
+        }
+      }, []);
   return (
- <div
-        style={{
-    backgroundImage: "url('https://i.ibb.co/jHv6pxq/bgthree.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center"
-  }}>
+    <div  className="bg-[url('/img1.avif')] bg-cover min-h-screen  bg-bottom  " >
+        {user && (<div className="flex justify-end mr-20">
+      <button type="button" onClick={handleLogout} className="border-2 p-2 rounded-md hover:scale-110 duration-200 ease-in-out border-black text-blue-700 ml-auto font-semibold mt-10">LOGOUT</button>
+      </div>)}
       <p
         onClick={() => {
           navigate("/");
         }}
-         className=" hover:cursor-pointer flex justify-center mt-28 font-bold text-[56px] text-blue-500 mb-10"
+         className=" hover:cursor-pointer flex justify-center  font-bold text-[56px] text-blue-500 mb-10"
       >
         Cover Fusion
       </p>
-      <div className="flex  h-screen justify-center ">
+      <div className="flex  justify-center ">
         <div className="border-2 mt-10 w-1/2 border-gray-800 h-fit bg-white">
           <p className="text-[50px] text-center font-medium">
             Cover Letter Generator
