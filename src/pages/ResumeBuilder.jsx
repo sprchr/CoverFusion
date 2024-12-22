@@ -194,7 +194,7 @@ const ResumeBuilder = () => {
               </div>
             )}
             <button className="w-full mx-auto bg-blue-600 text-white p-2 rounded-md">
-              Rebuild your resume
+              Resume Summary
             </button>
             {/* <button
               className="w-fit flex mt-5 mx-auto bg-blue-600 text-white p-2 rounded-md"
