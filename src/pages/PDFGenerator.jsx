@@ -9,7 +9,7 @@ const PDFGenerator = ({ resumeHtml,firebase, navigate, path }) => {
   return (
     <button
       onClick={handleGeneratePDF}
-     className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md"
+     className="px-2 flex mx-auto mb-5 cursor-pointer bg-gray-600 text-white p-1 rounded-md"
     >
       Generate PDF
     </button>
