@@ -15,7 +15,7 @@ Effortlessly create tailored cover letters that increase your chances of landing
 ---
 
 ### 2. **Resume Summarizer**
-Optimize your resume to focus on the main elements that matter during the application process.
+  Helps the recruiter to summarize the resume to focus on the main elements that matter during the application process.
 
 - **How It Works:**
   - Upload your resume in PDF format.
@@ -66,8 +66,7 @@ Below are the key tools and packages utilized in the development of **Cover Fusi
 - **Puppeteer:** A headless browser tool for generating and managing PDFs dynamically.
 - **Cors:** Middleware for enabling Cross-Origin Resource Sharing in API requests.
 - **Body Parser:** Parses incoming JSON payloads for server-side processing.
-- **Dotenv:** Manages environment variables for secure and flexible configuration.
-- **KafkaJS:** Facilitates communication and processing of messages in a distributed architecture.
+- **Dotenv:** Manages environment variables for secure and flexible configuration.  
 
 #### **Development and Build Tools**
 - **Vite:** A build tool for faster development and optimized production builds.
@@ -77,7 +76,7 @@ Below are the key tools and packages utilized in the development of **Cover Fusi
 - **Nodemon:** Automatically restarts the server during backend development.
 
 #### **Deployment Tools**
-- **Docker:** Containerizes the application to ensure consistent deployment across environments.
+- **Vercel:** Frontend and Backend Cloud provides the developer experience and infrastructure to build, scale, and secure a faster, more personalized web.
 - **Chromium (Sparticuz):** A lightweight version of Chromium, optimized for serverless environments.
 
 These tools collectively enhance **Cover Fusion**'s performance, reliability, and user experience, making it a standout platform for professionals seeking career opportunities.
