@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import saveAs from "file-saver";
 import { useNavigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
+import PDFGenerator from "./PDFGenerator";
+
 const CoverLetter = () => {
     const navigate = useNavigate();
   const [jobDescription, setJobDescription] = useState("");
@@ -21,42 +23,14 @@ const CoverLetter = () => {
     auth
       .signOut()
       .then(() => {
+        localStorage.clear()
         navigate("/"); // Redirect to the login page after logout
       })
       .catch((error) => {
         console.error("Logout failed:", error); // Log any errors during logout
       });
   };
-  const generatePDF = async () => {
-    
-    if (!user) {
-      // Navigate to the login page if the user is not logged in
-      navigate("/login");
-      return;
-    }
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_CALL}/generatepdf`,
-        { coverLetter }, // Pass the result or any necessary data
-        {
-          responseType: "arraybuffer", // Ensure the response is in binary format
-        }
-      );
-
-      // const uint8Array = new Uint8Array(response.data) // Convert response to Uint8Array
-      const uint8Array = new Uint8Array(response.data);
-      // console.log(uint8Array)
-      const blob = new Blob([uint8Array], { type: "application/pdf" });
-
-      // console.log(uint8Array)
-      saveAs(blob, "coverletter.pdf"); // Trigger file download
-
-      console.log("PDF generated and downloaded.");
-    } catch (error) {
-      console.error("Error generating or downloading PDF:", error);
-    }
-  };
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,20 +60,7 @@ const CoverLetter = () => {
       );
 
       setCoverLetter(response.data);
-      const html = response.data
-            const auth = getAuth();
-            const userId = auth.currentUser?.uid;
-            const db = getFirestore();
-            const resumeRef = doc(db, "coverLetter", userId); // Store the resume draft in the "resumeDraft" collection with userId as document ID
-      
-            // Add the userId and timestamp (optional)
-            const dataToStore = {
-              html,
-              updatedAt: new Date(),
-            };
-      
-            // Store the resume draft in Firestore (will merge with existing document if exists)
-            await setDoc(resumeRef, dataToStore, { merge: true });
+      localStorage.setItem("coverletter", JSON.stringify(response.data));
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -112,7 +73,7 @@ const CoverLetter = () => {
       // console.log(userId)
       try {
         // Reference to the user's resume document
-        const userDocRef = doc(db, "coverLetter", userId);
+        const userDocRef = doc(db, "coverletter", userId);
   
         // Fetch the document snapshot
         const userDocSnap = await getDoc(userDocRef);
@@ -124,8 +85,8 @@ const CoverLetter = () => {
           // console.log("Fetched Resume Data:", coverLetter);
   
           // Update the resume state
-          setCoverLetter(coverletter.html); // Assuming `setResume` is accessible in this scope
-         
+          setCoverLetter(coverletter.firebase); // Assuming `setResume` is accessible in this scope
+          localStorage.setItem("coverletter", JSON.stringify(coverletter.firebase));
         } else {
           console.log("No such document! Initializing with default values.");
           // Document doesn't exist; you can handle this by keeping the default state
@@ -135,12 +96,19 @@ const CoverLetter = () => {
       }
     };
     useEffect(() => {
-        const auth = getAuth();
-        const userId = auth.currentUser?.uid;
-    
-        if (userId) {
-          fetchResumeData(userId);
-        }
+      
+            const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+              if (currentUser) {
+                // console.log("User logged in:", currentUser.uid);
+                fetchResumeData(currentUser.uid); // Fetch resume data when the user is logged in
+              } else {
+                console.log("User not logged in.");
+                  setCoverLetter(JSON.parse(localStorage.getItem("coverletter")))
+              }
+            });
+          
+            // Clean up the listener when the component unmounts
+            return () => unsubscribe();
       }, []);
   return (
     <div  className="bg-[url('/img1.avif')] bg-cover min-h-screen  bg-bottom  " >
@@ -225,12 +193,8 @@ const CoverLetter = () => {
           )}
           {/* template end */}
           {coverLetter && (
-            <button
-              className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md"
-              onClick={() => generatePDF()}
-            >
-              Download Pdf
-            </button>
+            
+          <PDFGenerator firebase={JSON.parse(localStorage.getItem("coverletter"))} resumeHtml={JSON.parse(localStorage.getItem("coverletter"))} path={"coverletter"}  navigate={navigate}/>
           )}
         </div>
       </div>

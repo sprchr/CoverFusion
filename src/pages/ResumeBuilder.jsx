@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import saveAs from "file-saver";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
+import PDFGenerator from "./PDFGenerator";
 
 
 
@@ -25,46 +26,17 @@ const ResumeBuilder = () => {
     auth
       .signOut()
       .then(() => {
-        navigate("/"); // Redirect to the login page after logout
+        // console.log("clearing");
+        
+        localStorage.clear()
+        navigate("/"); 
       })
       .catch((error) => {
         console.error("Logout failed:", error); // Log any errors during logout
       });
   };
 
-  const generatePDF = async () => {
-    if (!user) {
-      // Navigate to the login page if the user is not logged in
-      navigate("/login");
-      return;
-    }
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_CALL}/generatepdf`,
-
-        { resume }, // Pass the result or any necessary data
-        {
-          responseType: "arraybuffer",
-
-          // Ensure the response is in binary format
-        },
-        {}
-      );
-
-      // const uint8Array = new Uint8Array(response.data) // Convert response to Uint8Array
-      const uint8Array = new Uint8Array(response.data);
-      // const buffer = Buffer.from(response.data)
-      const blob = new Blob([uint8Array], { type: "application/pdf" });
-
-      // console.log(uint8Array)
-      saveAs(blob, "Resume.pdf"); // Trigger file download
-
-      console.log("PDF generated and downloaded.");
-    } catch (error) {
-      console.error("Error generating or downloading PDF:", error);
-    }
-  };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -87,22 +59,8 @@ const ResumeBuilder = () => {
       // console.log(response.data)
 
       setResume(response.data);
-      const html = response.data
-      const auth = getAuth();
-      const userId = auth.currentUser?.uid;
-      const db = getFirestore();
-      const resumeRef = doc(db, "resume", userId); // Store the resume draft in the "resumeDraft" collection with userId as document ID
-
-      // Add the userId and timestamp (optional)
-      const dataToStore = {
-        html,
-        updatedAt: new Date(),
-      };
-
-      // Store the resume draft in Firestore (will merge with existing document if exists)
-      await setDoc(resumeRef, dataToStore, { merge: true });
-      setLoading(false); // Stop loading feedback
-      setPdf(true);
+      localStorage.setItem("resume", JSON.stringify(response.data));
+     setLoading(false)
     } catch (error) {
       setLoading(false);
       console.error("Request failed:", error);
@@ -127,23 +85,31 @@ const ResumeBuilder = () => {
           // console.log("Fetched Resume Data:", resumeData);
   
           // Update the resume state
-          setResume(resumeData.html); // Assuming `setResume` is accessible in this scope
+          setResume(resumeData.firebase);
+           // Assuming `setResume` is accessible in this scope
+          localStorage.setItem("resume", JSON.stringify(resumeData.firebase));
           setPdf(true)
         } else {
           console.log("No such document! Initializing with default values.");
-          // Document doesn't exist; you can handle this by keeping the default state
+          
         }
       } catch (error) {
         console.error("Error fetching resume data:", error);
       }
     };
     useEffect(() => {
-        const auth = getAuth();
-        const userId = auth.currentUser?.uid;
-    
-        if (userId) {
-          fetchResumeData(userId);
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          // console.log("User logged in:", currentUser.uid);
+          fetchResumeData(currentUser.uid); // Fetch resume data when the user is logged in
+        } else {
+          setResume(JSON.parse(localStorage.getItem("resume")))
+          console.log("User not logged in.");
         }
+      });
+    
+      // Clean up the listener when the component unmounts
+      return () => unsubscribe();
       }, []);
   return (
     <div className="bg-[url('/img1.avif')] bg-cover min-h-screen  bg-bottom  ">
@@ -194,22 +160,13 @@ const ResumeBuilder = () => {
               </div>
             )}
             <button className="w-full mx-auto bg-blue-600 text-white p-2 rounded-md">
-              Rebuild your resume
+            Resume Summary
             </button>
-            {/* <button
-              className="w-fit flex mt-5 mx-auto bg-blue-600 text-white p-2 rounded-md"
-              type="button"
-              onClick={() => {
-                setLoading(false);
-                setResumeForm(true);
-              }}
-            >
-              Edit your resume
-            </button> */}
+           
           </form>
           {loading && (
             <p className="ml-5 my-5 font-medium text-[20px]">
-              Resume is being generated...
+              Resume is being summarized...
             </p>
           )}
 
@@ -223,13 +180,9 @@ const ResumeBuilder = () => {
               </>
             )}
 
-          {pdf && (
-            <button
-              className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md"
-              onClick={() => generatePDF()}
-            >
-              Download Pdf
-            </button>
+          {resume && (
+           
+            <PDFGenerator  resumeHtml={JSON.parse(localStorage.getItem("resume"))} firebase={JSON.parse(localStorage.getItem("resume"))} path={"resume"}  navigate={navigate}/>
           )}
         </div>
       </div>

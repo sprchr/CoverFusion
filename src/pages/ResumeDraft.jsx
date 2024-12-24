@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig.js";
+import PDFGenerator from "./PDFGenerator.jsx";
+
 const ResumeDraft = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [pdf, setPdf] = useState(false);
   const [editForm, setEditForm] = useState(true);
+  const [errors, setErrors] = useState({});
+  const [loading,setLoading] = useState(false)
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -17,6 +21,7 @@ const ResumeDraft = () => {
     auth
       .signOut()
       .then(() => {
+        localStorage.clear
         navigate("/"); // Redirect to the login page after logout
       })
       .catch((error) => {
@@ -24,52 +29,17 @@ const ResumeDraft = () => {
       });
   };
 
-  const generatePDF = async () => {
-    if (!user) {
-      // Navigate to the login page if the user is not logged in
-      navigate("/login");
-      return;
-    }
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_CALL}/generatepdf`,
-
-        { resumeHtml }, // Pass the result or any necessary data
-        {
-          responseType: "arraybuffer",
-
-          // Ensure the response is in binary format
-        },
-        {}
-      );
-
-      // const uint8Array = new Uint8Array(response.data) // Convert response to Uint8Array
-      const uint8Array = new Uint8Array(response.data);
-      // const buffer = Buffer.from(response.data)
-      const blob = new Blob([uint8Array], { type: "application/pdf" });
-
-      // console.log(uint8Array)
-      saveAs(blob, "Resume.pdf"); // Trigger file download
-
-      console.log("PDF generated and downloaded.");
-    } catch (error) {
-      console.error("Error generating or downloading PDF:", error);
-    }
-  };
+ 
 
 
   const handleSubmit = async (e) => {
-      setEditForm(false)
+     
      
       // Get the userId from Firebase Authentication (or from wherever you store it)
-      const auth = getAuth();
-      const userId = auth.currentUser?.uid; // Assuming user is authenticated
-  
-      if (!userId) {
-          
-          return;
-      }
-  
+     // Assuming user is authenticated
+     setLoading(true)
+     setEditForm(false)
+    e.preventDefault()
       try {
           // Create a reference to the Firestore document for the user
           const response = await axios.post(
@@ -81,24 +51,15 @@ const ResumeDraft = () => {
                 }
               }
           )
-          const result = response.data
-          const db = getFirestore();
-          const resumeRef = doc(db, "resumeDraft", userId);  // Store the resume draft in the "resumeDraft" collection with userId as document ID
-  
-          // Add the userId and timestamp (optional)
-          const dataToStore = {
-              ...result,
-              userId,
-              updatedAt: new Date(),
-          };
-  
-          // Store the resume draft in Firestore (will merge with existing document if exists)
-          await setDoc(resumeRef, dataToStore, { merge: true });
           
-          setResume(result); // Optionally update the resume state with new data
+          
+          setResume(response.data); // Optionally update the resume state with new data
+         
           setPdf(true);  // Trigger any necessary state change (e.g., for showing a PDF preview)
-          console.log("Data stored in Firebase");
           
+          // console.log(resume)
+          console.log(resumeHtml);
+          setLoading(false)
       } catch (error) {
           console.error("Request failed:", error);
       }
@@ -109,7 +70,7 @@ const ResumeDraft = () => {
     // console.log(userId)
     try {
       // Reference to the user's resume document
-      const userDocRef = doc(db, "resumeDraft", userId);
+      const userDocRef = doc(db, "resumedraft", userId);
 
       // Fetch the document snapshot
       const userDocSnap = await getDoc(userDocRef);
@@ -121,7 +82,9 @@ const ResumeDraft = () => {
         // console.log("Fetched Resume Data:", resumeData);
 
         // Update the resume state
-        setResume(resumeData); // Assuming `setResume` is accessible in this scope
+        setResume(resumeData.firebase); // Assuming `setResume` is accessible in this scope
+        console.log(resumeData);
+        
         setPdf(true)
       } else {
         console.log("No such document! Initializing with default values.");
@@ -132,15 +95,22 @@ const ResumeDraft = () => {
     }
   };
   useEffect(() => {
-      const auth = getAuth();
-      const userId = auth.currentUser?.uid;
-  
-      if (userId) {
-        fetchResumeData(userId);
-      }
+      
+   
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          // console.log("User logged in:", currentUser.uid);
+          fetchResumeData(currentUser.uid); // Fetch resume data when the user is logged in
+        } else {
+          console.log("User not logged in.");
+        }
+      });
+    
+      // Clean up the listener when the component unmounts
+      return () => unsubscribe();
     }, []);
   // // Call this function where needed (e.g., in useEffect after user authentication)
-
+  
   const [resume, setResume] = useState({
     header: {
       name: "",
@@ -169,13 +139,13 @@ const ResumeDraft = () => {
         duration: "",
       },
     ],
-    projects: [
-      {
-        title: "",
-        description: "",
-        technologies: [],
-      },
-    ],
+    // projects: [
+    //   {
+    //     title: "",
+    //     description: "",
+    //     technologies: [],
+    //   },
+    // ],
     certifications: [],
     achievements: [],
     hobbies: "",
@@ -200,8 +170,12 @@ const ResumeDraft = () => {
     } else {
       setResume({ ...resume, [field]: value }); // Update top-level fields
     }
+    const updatedErrors = { ...errors };
+    if (updatedErrors[field]) delete updatedErrors[field];
+    setErrors(updatedErrors);
   };
 
+  
   const addEntry = (section) => {
     let newEntry;
 
@@ -214,9 +188,10 @@ const ResumeDraft = () => {
         duration: "",
         responsibilities: [],
       };
-    } else if (section === "projects") {
-      newEntry = { title: "", technologies: [], description: "" };
-    }
+    } 
+    // else if (section === "projects") {
+    //   newEntry = { title: "", technologies: [], description: "" };
+    // }
 
     // Update the state for the respective section by adding a new entry
     setResume({ ...resume, [section]: [...resume[section], newEntry] });
@@ -332,12 +307,13 @@ const ResumeDraft = () => {
     </style>
   
           <div class="resume-container">
+          
             ${
               resume.header
                 ? `
               <header class="header">
-                <h1>${resume.header.name}</h1>
-                <p>${resume.header.title}</p>
+                <h1>${resume.header?.name}</h1>
+                <p>${resume.header?.title}</p>
                 <div class="contact-info">
                    ${
                      resume.header.email
@@ -422,7 +398,7 @@ const ResumeDraft = () => {
               resume.experience && resume.experience.length > 0
                 ? `
               <section class="section">
-                <h2>Work Experience</h2>
+                <h2>Project Experience</h2>
                 ${resume.experience
                   .map(
                     (job) => `
@@ -443,26 +419,7 @@ const ResumeDraft = () => {
                 : ""
             }
   
-            ${
-              resume.projects && resume.projects.length > 0
-                ? `
-              <section class="section">
-                <h2>Projects</h2>
-                ${resume.projects
-                  .map(
-                    (project) => `
-                  <div>
-                    <h3 class="font-medium">${project.title}</h3>
-                    <p>Technologies: ${project.technologies.join(", ")}</p>
-                    <p>${project.description}</p>
-                  </div>
-                `
-                  )
-                  .join("")}
-              </section>
-            `
-                : ""
-            }
+           
   
             ${
               resume.certifications && resume.certifications.length > 0
@@ -534,6 +491,7 @@ const ResumeDraft = () => {
 
   return (
     <div className="bg-[url('/img1.avif')] bg-cover min-h-screen  bg-bottom  ">
+       
       {user && (
         <div className="flex justify-end mr-20">
           <button
@@ -556,8 +514,9 @@ const ResumeDraft = () => {
 
       {editForm ? (
         <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow">
+       
           <header className="border-b-2 pb-4 text-center mb-6">
-            <h1 className="text-2xl font-bold">Resume Builder</h1>
+            <h1 className="text-2xl font-bold">Resume Draft</h1>
             <p className="text-lg">
               Fill out your information below and click on field to edit
             </p>
@@ -571,34 +530,35 @@ const ResumeDraft = () => {
                   type="text"
                   placeholder="Your Name"
                   className="px-2 text-center focus:outline-blue-500  "
-                  value={resume.header.name}
+                  value={resume.header?.name}
                   onChange={(e) =>
                     handleChange("name", e.target.value, "header")
                   }
                   style={{
-                    width: resume.header.name
-                      ? `${resume.header.name.length + 2}ch`
+                    width: resume.header?.name
+                      ? `${resume.header?.name.length + 2}ch`
                       : "auto",
                   }}
                 />
+                
               </div>
               <div className="text-[18px]">
                 <input
                   type="text"
                   placeholder="Your Title"
                   className=" c text-center focus:outline-blue-500 mb-2"
-                  value={resume.header.title}
+                  value={resume.header?.title}
                   onChange={(e) =>
                     handleChange("title", e.target.value, "header")
                   }
                   style={{
-                    width: resume.header.title
-                      ? `${resume.header.title.length + 1}ch`
+                    width: resume.header?.title
+                      ? `${resume.header?.title.length + 1}ch`
                       : "auto",
                   }}
                 />
                 <span className="absolute opacity-0">
-                  {resume.header.title}
+                  {resume.header?.title}
                 </span>
               </div>
               <div className="flex justify-center flex-wrap text-18 mb-2">
@@ -739,7 +699,7 @@ const ResumeDraft = () => {
           {/*experience*/}
           <section className="mb-2 border-b-2">
             <div className="flex gap-10 items-center">
-              <h2 className="text-[18px]  font-bold mb-2">Experience</h2>
+              <h2 className="text-[18px]  font-bold mb-2">Project Experience</h2>
               <button
                 className="font-bold text-black text-[25px] mt-[-14px]"
                 onClick={() => addEntry("experience")}
@@ -830,7 +790,7 @@ const ResumeDraft = () => {
           {/* Add similar sections for experience, projects, certifications, achievements, etc. */}
 
           {/*projects*/}
-          <section className="mb-2 border-b-2">
+          {/* <section className="mb-2 border-b-2">
             <div className="flex gap-10 items-center">
               <h2 className="text-[18px]  font-bold mb-2">Projects</h2>
               <button
@@ -893,7 +853,7 @@ const ResumeDraft = () => {
                 </button>
               </div>
             ))}
-          </section>
+          </section> */}
           {/*certification*/}
           <section className="mb-2 border-b-2">
             <div className="flex gap-10 items-center">
@@ -979,9 +939,9 @@ const ResumeDraft = () => {
               />
             </div>
           </section>
-          <button
+          <button type="submit"
             className="px-6 py-2 bg-green-500 text-white rounded mt-6"
-            onClick={() => handleSubmit()}
+            onClick={handleSubmit}
           >
             Submit
           </button>
@@ -997,9 +957,59 @@ const ResumeDraft = () => {
           {resume &&
            (
               <>
-                <button class="edit-form" onClick={() => setEditForm(true)}>
+             
+                <button class="edit-form" onClick={() => {
+
+                  setEditForm(true)
+                  {user ? 
+                  fetchResumeData() :
+                  setResume({
+                    header: {
+                      name: "",
+                      title: "",
+                      email: "",
+                      phone: "",
+                      linkedin: "",
+                      github: "",
+                      address: "",
+                    },
+                    summary: "",
+                    skills: [],
+                    education: [
+                      {
+                        degree: "",
+                        institution: "",
+                        graduationYear: "",
+                        gpa: "",
+                      },
+                    ],
+                    experience: [
+                      {
+                        title: "",
+                        company: "",
+                        responsibilities: [],
+                        duration: "",
+                      },
+                    ],
+                    // projects: [
+                    //   {
+                    //     title: "",
+                    //     description: "",
+                    //     technologies: [],
+                    //   },
+                    // ],
+                    certifications: [],
+                    achievements: [],
+                    hobbies: "",
+                    languages: [],
+                    volunteer: "",
+                  })
+                  }
+                }}
+                  >
                   Draft Resume
                 </button>
+                {loading && <p className="text-center font-bold text-[20px] mt-5">Please wait resume is being loaded...</p>}
                 <div
                   className="m-2 mx-5"
                   dangerouslySetInnerHTML={{ __html: resumeHtml }}
@@ -1008,12 +1018,7 @@ const ResumeDraft = () => {
             )}
 
           {pdf && (
-            <button
-              className="px-2 flex mx-auto mb-5 bg-gray-600 text-white p-1 rounded-md"
-              onClick={() => generatePDF()}
-            >
-              Download Pdf
-            </button>
+      <PDFGenerator  resumeHtml={resumeHtml} firebase={resume} path={"resumedraft"}  navigate={navigate}/>
           )}
         </>
       )}
@@ -1022,3 +1027,25 @@ const ResumeDraft = () => {
 };
 
 export default ResumeDraft;
+
+
+// ${
+//   resume.projects && resume.projects.length > 0
+//     ? `
+//   <section class="section">
+//     <h2>Projects</h2>
+//     ${resume.projects
+//       .map(
+//         (project) => `
+//       <div>
+//         <h3 class="font-medium">${project.title}</h3>
+//         <p>Technologies: ${project.technologies.join(", ")}</p>
+//         <p>${project.description}</p>
+//       </div>
+//     `
+//       )
+//       .join("")}
+//   </section>
+// `
+//     : ""
+// }
