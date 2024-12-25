@@ -61,7 +61,7 @@ Below are the key tools and packages utilized in the development of **Cover Fusi
 - **Express:** A web framework for Node.js, used to handle API routes and backend logic.
 - **Multer:** Middleware for handling file uploads, such as resumes in PDF format.
 - **Firebase & Firebase Admin:** Used for authentication, database management, and deployment.
-- **OpenAI:** Utilized for generating AI-driven cover letters and summarizations.
+- **GPT-4o-mini:** Utilized for generating AI-driven cover letters and summarizations.
 - **PDF-Parse:** Extracts text content from PDF files for analysis and processing.
 - **Puppeteer:** A headless browser tool for generating and managing PDFs dynamically.
 - **Cors:** Middleware for enabling Cross-Origin Resource Sharing in API requests.
