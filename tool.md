@@ -1,4 +1,4 @@
-####### Cover Fusion: Empowering Professionals in Their Job Search
+### Cover Fusion: Empowering Professionals in Their Job Search
 
 **Cover Fusion** is a comprehensive web platform designed to assist professionals in finding their perfect job. The platform offers three essential tools to streamline and enhance the job application process:
 
