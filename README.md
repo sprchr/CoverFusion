@@ -1,6 +1,6 @@
 ## **React Frontend Project Documentation**
 
-### **WIKISOURCE**
+### **CoverFusion**
 
 #### **1. Project Description**
 
