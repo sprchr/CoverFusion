@@ -4,7 +4,7 @@
 
 #### **1. Project Description**
 
-Wikisource is a React.js-based web application designed to harness AI technology for enhancing professional documents. The platform offers users the ability to:
+CoverFusion is a React.js-based web application designed to harness AI technology for enhancing professional documents. The platform offers users the ability to:
 
 - **Generate customized cover letters** by analyzing existing resumes and job descriptions.
 - **Upgrade and enhance resumes**, tailoring them to meet industry standards and align with specific career goals.
